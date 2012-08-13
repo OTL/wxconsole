@@ -1,0 +1,15 @@
+<package>
+  <description brief="wxconsole">
+
+     wxconsole is javascript version rxconsole
+
+  </description>
+  <author>Takashi Ogura</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/wxconsole</url>
+  <depend package="rosbridge"/>
+
+</package>
+
+

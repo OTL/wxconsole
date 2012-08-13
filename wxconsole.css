@@ -1,0 +1,19 @@
+.break-word {
+ word-wrap: break-word;
+}
+
+.Fatal {
+    color:#9d261d;
+}
+.Error {
+    color:#9d261d;
+}
+.Warn {
+    color:#ffc40d;
+}
+.Info {
+    color:#049cdb;
+}
+.Debug {
+    color:#000000;
+}
