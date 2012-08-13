@@ -77,8 +77,8 @@ wxconsole.messageToHTML = function(msg) {
     '<p><strong>Time: </strong>' + msg.header.stamp.secs + '.' +
     msg.header.stamp.nsecs + '</p>' +
     '<p><strong>Severity: </strong>' + wxconsole.levelToString(msg.level) + '</p>' +
-    '<p class="break-word><strong>Location: </strong>' + msg.file + ':in `' + msg.function + "\':" + msg.line + '</p>' +
-    '<p class="break-word><strong>Published Topics: </strong>' + msg.topics.join(', ') + '</p>' +
+    '<p class="break-word"><strong>Location: </strong>' + msg.file + ':in `' + msg.function + "\':" + msg.line + '</p>' +
+    '<p class="break-word"><strong>Published Topics: </strong>' + msg.topics.join(', ') + '</p>' +
     '<p /><h3>' + msg.msg + '</h3>';
 };
 

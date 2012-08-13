@@ -62,5 +62,7 @@ test('messageToHTML', function() {
 	 topics : ['/topic1', '/topic2', '/rosout'],
 	 msg : 'this is test message'
        };
-       equal(wxconsole.messageToHTML(msg1), "<p><strong>Node: </strong>/node1</p><p><strong>Time: </strong>100.123</p><p><strong>Severity: </strong>Warn</p><p><strong>Location: </strong>main.c:in `Func()':145</p><p><strong>Published Topics: </strong>/topic1,/topic2,/rosout</p><p /><h3>this is test message</h3>");
-});
+       equal(wxconsole.messageToHTML(msg1),
+	     "<p><strong>Node: </strong>/node1</p><p><strong>Time: </strong>100.123</p><p><strong>Severity: </strong>Warn</p><p class=\"break-word\"><strong>Location: </strong>main.c:in `Func()':145</p><p class=\"break-word\"><strong>Published Topics: </strong>/topic1, /topic2, /rosout</p><p /><h3>this is test message</h3>");
+     });
+
