@@ -213,6 +213,7 @@ wxconsole.MessageHTMLConverter = function(bufferSize) {
     if ((!self.isPaused) && 
       selectedLevel_[wxconsole.levelToString(msg.level)]) {
       $('#' + self.tableId + ' > tbody:last').append(self.generateTableRowFromMessage(msg));
+
       $('html, body').animate({scrollTop: $('#' + self.messageId).offset().top}, 0);
       numberOfReceivedMessages_++;
       if (numberOfReceivedMessages_ >
@@ -405,7 +406,7 @@ wxconsole.App = function() {
   var hostname = "";
   var port = 9090;
   var bufferSize = 500;
-  var version = '1.0';
+  var version = '2.0';
   var topic = '/rosout_agg';
 
   this.getCookies = function(){
@@ -428,10 +429,11 @@ wxconsole.App = function() {
 
     version = $.cookie('rosbridgeVersion');
     if (version == null) {
-      if (ros.Connection != undefined) {
-	wxconsole.setRosbridgeVersion('1.0');
-      } else if (ros.Bridge != undefined) {
+      // default is version 2.0
+      if (ros.Bridge != undefined) {
 	wxconsole.setRosbridgeVersion('2.0');
+      } else if (ros.Connection != undefined) {
+	wxconsole.setRosbridgeVersion('1.0');
       } else {
 	console.error('ros.js is not included');
       }
