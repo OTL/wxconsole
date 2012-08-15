@@ -135,7 +135,6 @@ wxconsole.SearchFilter = function(name) {
     } else {
       compareFunc = this.stringCompare;
     }
-    console.log('text=' + this.text);
     var include = false;
     if (this.where['Message'] && compareFunc(msg.msg)) {
       include = true;
@@ -255,7 +254,6 @@ wxconsole.MessageViewController = function(bufferSize) {
       function(ev) {
 	if (ev.clientX == 0 && ev.clientY == 0) {
 	 // dummy event by form submit
-	  console.log('enable event');
 	  return true;
 	} else {
 	  self.filters[filterNumber + 1].enabled = !self.filters[filterNumber + 1].enabled;
@@ -266,11 +264,9 @@ wxconsole.MessageViewController = function(bufferSize) {
     $('#filterRegExCheck' + filterNumber).change(
       function(ev) {
 	if (ev.clientX == 0 && ev.clientY == 0) {
-	  console.log('reg event');
 	  // dummy event by form submit
 	  return true;
 	} else {
-	  console.log('check!!');
 	  self.filters[filterNumber + 1].regex = !self.filters[filterNumber + 1].regex;
 	}
 	return false;

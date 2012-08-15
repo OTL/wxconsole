@@ -49,7 +49,7 @@ Bridge.prototype.send = function(op, id, msg) {
     if (id != null) {
         msg.id = id;
     }
-    console.log("Sending", JSON.stringify(msg));
+//    console.log("Sending", JSON.stringify(msg));
     this.socket.send(JSON.stringify(msg));
 }
 
@@ -126,7 +126,7 @@ Bridge.prototype.callService = function(callback, service, /*optional*/ args,
 }
 
 Bridge.prototype.receiveMessage = function(event) {
-    console.log("Received incoming", event.data);
+//    console.log("Received incoming", event.data);
     msg = JSON.parse(event.data);
     
     switch(msg.op) {
