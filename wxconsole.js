@@ -291,7 +291,8 @@ wxconsole.MessageViewController = function(bufferSize) {
 	var height = $(this).parent().outerHeight(true);
 	body.css('padding-bottom', (currentBottom - height) + 'px');
 	$(this).parent().remove();
-	self.filters[filterNumber + 1].enable = false;
+	self.filters[filterNumber + 1].enabled = false;
+	self.updateAll();
 	return false;
     });
 
@@ -319,9 +320,6 @@ wxconsole.MessageViewController = function(bufferSize) {
     body.css('padding-bottom', (currentBottom + height) + 'px');
   };
 
-
-  this.addFilter();
-
   /**
    * Toggles paused/resumed state of level
    * @param {String} levelText one of Debug/Info/Warn/Error/Fatal
@@ -341,14 +339,16 @@ wxconsole.MessageViewController = function(bufferSize) {
     $('#' + self.messageId).append(
       '<div class="alert alert-block alert-error">'
 	+ '<a class="close" data-dismiss="alert" href="#">x</a>'
-	+ '<strong>Error!</strong> rosbridge connection closed</div>');
+	+ '<strong>Error!</strong> rosbridge connection closed</div>')
+      .delay(5000).fadeOut(1000);
   };
 
   this.onErrorCallback = function (e) {
     $('#' + self.messageId).append(
       '<div class="alert alert-block alert-error">'
 	+ '<a class="close" data-dismiss="alert" href="#">x</a>'
-	+ '<strong>Error!</strong> rosbridge error has occered</div>');
+	+ '<strong>Error!</strong> rosbridge error has occered</div>')
+      .delay(5000).fadeOut(1000);
   };
 
   this.generateTableRowFromMessage = function(msg, id, hide) {
