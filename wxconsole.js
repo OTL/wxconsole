@@ -93,7 +93,7 @@ wxconsole.MakeWebsocketUri = function(host, port) {
 };
 
 wxconsole.generateLocationString = function(msg) {
-  return msg.file + ':in `' + msg.function + "\':" + msg.line;;
+  return msg.file + ':in `' + msg.function + "':" + msg.line;;
 };
 
 wxconsole.SearchFilter = function(name) {

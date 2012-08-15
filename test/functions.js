@@ -49,6 +49,14 @@ test('MakeWebsocketUri', function() {
        equal(wxconsole.MakeWebsocketUri('localhost', 9090), 'ws://localhost:9090');
        });
 
+test('generateLocationString', function() {
+       var msg = {file: 'a',
+		  function: 'b',
+		  line: 1};
+       equal(wxconsole.generateLocationString(msg), "a:in `b':1");
+     });
+
+
 test('messageToHTML', function() {
        var msg1 = {
 	 name : '/node1',
