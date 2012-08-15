@@ -92,6 +92,86 @@ wxconsole.MakeWebsocketUri = function(host, port) {
   return "ws://" + host + ":" + port.toString();
 };
 
+wxconsole.generateLocationString = function(msg) {
+  return msg.file + ':in `' + msg.function + "\':" + msg.line;;
+};
+
+wxconsole.SearchFilter = function(name) {
+  if (name) {
+    this.name = name;
+  } else {
+    this.name = 'Search';
+  }
+  this.enabled = true;
+  this.text = '';
+  this.include = true;
+  this.regex = false;
+  this.where = {
+    Message: true,
+    Node: true,
+    Location: true,
+    Topics: true
+  };
+  var self = this;
+
+  this.stringCompare = function(targetText) {
+    return (targetText.indexOf(self.text) >= 0);
+  };
+  this.regexCompare = function(targetText) {
+    var regex = new RegExp(self.text);
+    return targetText.match(regex);
+  };
+  
+  this.reject = function(msg) {
+    if (!this.enabled) {
+      return false;
+    }
+    if (this.text == ''){
+      return false;
+    }
+    var compareFunc = null;
+    if (this.regex) {
+      compareFunc = this.regexCompare;
+    } else {
+      compareFunc = this.stringCompare;
+    }
+    console.log('text=' + this.text);
+    var include = false;
+    if (this.where['Message'] && compareFunc(msg.msg)) {
+      include = true;
+    } else if (this.where['Node'] && compareFunc(msg.name)){
+      include = true;
+    } else if (this.where['Location'] && 
+	       (compareFunc(wxconsole.generateLocationString(msg)))) {
+      include = true;
+    } else if (this.where['Topics'] && 
+	       compareFunc(msg.topics.toString())) {
+      include = true;
+    }
+    if (this.include) {
+      return !include;
+    } else {
+      return include;
+    }
+  };
+};
+
+wxconsole.SiverityFilter = function() {
+  var selectedLevel_ = {Unknown:false,
+			Debug:false,
+			Info:false,
+			Warn:false,
+			Error:false,
+			Fatal:false};
+  this.name = 'SiverityFilter';
+  this.reject = function(msg) {
+    return selectedLevel_[wxconsole.levelToString(msg.level)];
+  };
+  this.toggleSelectedLevel = function(levelText){
+    selectedLevel_[levelText] = !selectedLevel_[levelText];
+  };
+};
+
 /**
  * @class Message Converter
  * @param {Number} bufferSize number of messaged for displayed
@@ -130,23 +210,124 @@ wxconsole.MessageHTMLConverter = function(bufferSize) {
    * @type Boolean
    */
   this.isPaused = false;
-
-  var selectedLevel_ = {Unknown:true,
-			Debug:true,
-			Info:true,
-			Warn:true,
-			Error:true,
-			Fatal:true};
+  this.filters = new Array();
+  var siverityFilter_ = new wxconsole.SiverityFilter();
+  this.filters.push(siverityFilter_);
 
   var numberOfReceivedMessages_ = 0;
+  this.messages = new Array();
+  
   var self = this;
+
+
+  this.addFilter = function(){
+    var filterNumber = self.filters.length - 1;
+    var newFilter = new wxconsole.SearchFilter('Search' + filterNumber);
+    self.filters.push(newFilter);
+
+
+    // view
+    $('#filters').append(
+     	'<form class="form-inline filter-input" id="filterForm' + filterNumber + '">' +
+	'<button class="btn" id="filter_enabled' + filterNumber + '" data-toggle="button">Enabled</button>' +
+	'<input type="text" class="input-small span2" id="filterText' + filterNumber + '">' +
+	'<select id="filterInclude' + filterNumber + '" class="span2">' +
+	'<option>Include</option>' +
+	'<option>Exclude</option>' +
+	'</select>' +
+	'<label class="checkbox">' +
+	'<input type="checkbox" id="filterRegExCheck' + filterNumber + '"> Regex' +
+	'</label>' +
+	'<strong>From</strong>' +
+	'<button class="btn" id="filterMessage' + filterNumber + '">Message</button>' +
+	'<button class="btn" id="filterNode' + filterNumber + '">Node</button>' +
+	'<button class="btn" id="filterLocation' + filterNumber + '">Location</button>' +
+	'<button class="btn" id="filterTopics' + filterNumber + '">Topics</button>' +
+	'<button class="btn btn-danger" id="filterRemove' + filterNumber + '">' +
+	'<i class="icon-minus-sign"></i></button>' +
+	'<button class="btn disabled" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
+	'<button class="btn disabled" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
+	'</form>');
+
+    // controller
+    $('#filter_enabled' + filterNumber).button('toggle');
+    $('#filter_enabled' + filterNumber).click(
+      function(ev) {
+	if (ev.clientX == 0 && ev.clientY == 0) {
+	 // dummy event by form submit
+	  console.log('enable event');
+	  return true;
+	} else {
+	  self.filters[filterNumber + 1].enabled = !self.filters[filterNumber + 1].enabled;
+	  $(this).button('toggle');
+	}
+	return false;
+      });
+    $('#filterRegExCheck' + filterNumber).change(
+      function(ev) {
+	if (ev.clientX == 0 && ev.clientY == 0) {
+	  console.log('reg event');
+	  // dummy event by form submit
+	  return true;
+	} else {
+	  console.log('check!!');
+	  self.filters[filterNumber + 1].regex = !self.filters[filterNumber + 1].regex;
+	}
+	return false;
+      });
+
+    $('#filterInclude' + filterNumber).change(
+      function() {
+	if ($(this).val() == 'Include') {
+	  self.filters[filterNumber + 1].include = true;
+	} else {
+	  self.filters[filterNumber + 1].include = false;
+	}
+      });
+    $('#filterRemove' + filterNumber).click(
+      function(){
+	var body = $('body');
+	var currentBottom = parseInt(body.css('padding-bottom'));
+	var height = $(this).parent().outerHeight(true);
+	body.css('padding-bottom', (currentBottom - height) + 'px');
+	$(this).parent().remove();
+	self.filters[filterNumber + 1].enable = false;
+	return false;
+    });
+
+    $('#filterForm' + filterNumber).submit(
+      function() {
+	self.filters[filterNumber + 1].text = $('#filterText' + filterNumber).val();
+	self.updateAll();
+	return false;
+      });
+    
+    var selector = new Array('Message', 'Node', 'Location', 'Topics');
+    for (var i = 0; i < selector.length; i++){
+      var button = $('#filter' + selector[i] + filterNumber);
+      button.button('toggle');
+      button.click(
+	function(ev){
+	  self.filters[filterNumber + 1].where[selector[i]] = !self.filters[filterNumber + 1].where[selector[i]];
+	  $(this).button('toggle');
+	  return false;
+	});
+    }
+    var body = $('body');
+    var currentBottom = parseInt(body.css('padding-bottom'));
+    var height = $('#filterForm' + filterNumber).outerHeight(true);
+    body.css('padding-bottom', (currentBottom + height) + 'px');
+  };
+
+
+  this.addFilter();
 
   /**
    * Toggles paused/resumed state of level
    * @param {String} levelText one of Debug/Info/Warn/Error/Fatal
    */
   this.toggleSelectedLevel = function(levelText){
-    selectedLevel_[levelText] = !selectedLevel_[levelText];
+    siverityFilter_.toggleSelectedLevel(levelText);
   };
 
   /**
@@ -170,8 +351,8 @@ wxconsole.MessageHTMLConverter = function(bufferSize) {
 	+ '<strong>Error!</strong> rosbridge error has occered</div>');
   };
 
-  this.generateTableRowFromMessage = function(msg) {
-    var location = msg.file + ':in `' + msg.function + "\':" + msg.line;
+  this.generateTableRowFromMessage = function(msg, id, hide) {
+    var location = wxconsole.generateLocationString(msg);
     var maxLocationLength = 50;
     if (location.length  > maxLocationLength) {
       location = location.substring(0, maxLocationLength) + '...';
@@ -181,8 +362,13 @@ wxconsole.MessageHTMLConverter = function(bufferSize) {
     if (topics.length  > maxTopicsLength) {
       topics = topics.substring(0, maxTopicsLength) + '...';
     }
-
-    return '<tr>' +
+    var tr = '';
+    if (hide) {
+      tr = '<tr id="' + id + '" class="hide">';
+    } else {
+      tr = '<tr id="' + id + '">';
+    }
+    return tr +
       '<td><i class="' + wxconsole.levelToTBIcon(msg.level) +
       '"></i>' + 
       '<a onclick="$(\'#modal_message' + numberOfReceivedMessages_ + '\').modal()" class="' + wxconsole.levelToString(msg.level) + '">' + msg.msg + '</a>' + 
@@ -209,17 +395,41 @@ wxconsole.MessageHTMLConverter = function(bufferSize) {
       '</tr>';
   };
 
-  this.onMessageCallback = function(msg) {
-    if ((!self.isPaused) && 
-      selectedLevel_[wxconsole.levelToString(msg.level)]) {
-      $('#' + self.tableId + ' > tbody:last').append(self.generateTableRowFromMessage(msg));
-
-      $('html, body').animate({scrollTop: $('#' + self.messageId).offset().top}, 0);
-      numberOfReceivedMessages_++;
-      if (numberOfReceivedMessages_ >
-	  self.MaxNumberOfDisplayedMessages) {
-	$('#' + self.tableId + ' > tbody').contents().first().remove();
+  this.reject = function(msg) {
+    for (var i = 0;  i < self.filters.length; i++) {
+      if (self.filters[i].reject(msg)) {
+	return true;
       }
+    }
+    return false;
+  };
+
+  this.updateAll = function() {
+    for (var i = 0;  i < self.messages.length; i++) {
+      if (self.reject(self.messages[i])) {
+	$('#logTable' + i).addClass('hide');
+      } else {
+	$('#logTable' + i).removeClass('hide');
+      }
+    }
+  };
+
+  this.onMessageCallback = function(msg) {
+    var hide = (self.isPaused || self.reject(msg));
+    var id = 'logTable' + numberOfReceivedMessages_;
+
+    $('#' + self.tableId + ' > tbody:last').append(self.generateTableRowFromMessage(msg, id, hide));
+    
+    if (!hide) {
+      $('html, body').animate({scrollTop: $('#' + self.messageId).offset().top}, 0);
+    }
+    numberOfReceivedMessages_++;
+    self.messages.push(msg);
+    if (numberOfReceivedMessages_ >
+	self.MaxNumberOfDisplayedMessages) {
+      self.messages.shift();
+      // ToDo
+      // $('#' + self.tableId + ' > tbody').contents().first().remove();
     }
   };
 
@@ -235,6 +445,8 @@ wxconsole.MessageHTMLConverter = function(bufferSize) {
 
   this.clear = function(){
     $('#' + self.tableId + ' > tbody:last').html("");
+    numberOfReceivedMessages_ = 0;
+    self.messages = new Array();
   };
 };
 
@@ -447,12 +659,7 @@ wxconsole.App = function() {
     $('.nav-tabs').button();
     $(".alert").alert();
     $('#level_buttons > .btn').button('toggle');
-    
-    $('#rosout_table').css('table-layout', 'fixed');
-    $("#bottom_items").css('position', 'fixed');
-    $("#bottom_items").css('bottom', 0);
-    $("#bottom_items").css('height', 100);
-    
+
     this.getCookies();
     var converter = new wxconsole.MessageHTMLConverter(bufferSize);
     
@@ -482,12 +689,17 @@ wxconsole.App = function() {
     $('#level_buttons > .btn').click(
       function(){
 	converter.toggleSelectedLevel($(this).text());
+	converter.updateAll();
 	$(this).button('toggle');
       });
     $('#pause_button').click(
       function(){
 	converter.togglePause();
 	$(this).button('toggle');
+      });
+    $('#add_filter_button').click(
+      function(ev) {
+	converter.addFilter();
       });
     $('#clear_button').click(
       function(){

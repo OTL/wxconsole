@@ -18,7 +18,7 @@
 
   </head>
 
-  <body style="padding-top: 60px; padding-bottom: 60px;">
+  <body>
 
     <div class="navbar navbar-fixed-top" id="nav_bar">
       <div class="navbar-inner">
@@ -47,7 +47,7 @@
 	      <button class="btn btn-default" id="Fatal"><i class="icon-remove"></i>Fatal</button>
 	    </div>
 	  </div>
-	  <div class="span4">
+	  <div class="span5">
 	    <button class="btn btn-default" id="pause_button"
 		    data-toggle="button">
 	      <i class="icon-black icon-pause"></i>Pause</button>
@@ -55,6 +55,8 @@
 	      <i class="icon-black icon-refresh"></i>Clear</button>
 	    <button class="btn btn-info" id="setting_button">
 	      <i class="icon-white icon-wrench"></i>Setup</button>
+	    <button class="btn" id="add_filter_button">
+	      <i class="icon-plus-sign"></i>Add Filter</button>
 	  </div>
 	</div>
       </div>
@@ -79,15 +81,18 @@
 	  </table>
 	</div>
       </div>
+    </div>
 
-      <div id="bottom_items">
-	<div class="row">
-	  <div class="span6">
-	    <div id="message">
-	    </div>
-	  </div>
+    <div class="row">
+      <div class="span6" id="messageField">
+	<div id="message">
 	</div>
       </div> <!-- end of bottom_items -->
+    </div>
+
+    <div class="row span12">
+      <div id="filters">
+      </div>
     </div>
 
     <div id="modal_setting" class="modal hide">

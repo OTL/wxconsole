@@ -1,3 +1,8 @@
+body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+}
+
 .break-word {
  word-wrap: break-word;
 }
@@ -16,4 +21,27 @@
 }
 .Debug {
     color:#000000;
+}
+
+#filters {
+    background-color: #888888;
+    color: #cccccc;
+    width : 100%;
+    left: 0px;
+    position: fixed;
+    bottom: 30px;
+    padding-left: 30px;
+    padding-top: 5px;
+    padding-bottom: 2px;
+}
+
+#messageField{
+    position: fixed;
+    bottom: 100px;
+    height: 50px;
+    left: 10px;
+}
+
+#rosout_table {
+    table-layout: fixed;
 }
