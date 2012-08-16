@@ -15,18 +15,15 @@ Then please access to http://otl.github.com/wxconsole/ in your browser.
 Input your rosbridge's host name to the top navbar form.
 and press enter.
 
-
 wxconsole supports rosbridge version 1.0
 and version 2.0. Default is version 2.0.
 If you are using rosbridge version 1.0, push the 'Setup' button
 of the bottom. Then please select rosbridge 1.0.
 
 In the setup menu, you can set topic name, rosbridge websocket port number,
-and buffer size.
+and buffer size. All settings and host name are saved as cookie.
 
 Other buttons are the same as rxconsole.
-
-Filtering is not implemented yet.
 
 License
 ---------------------
@@ -34,8 +31,8 @@ new BSD License
 
 Requirements
 ----------------
-* Server: rosbridge (version 1.0 or 2.0)
-* Client: web browser (Chrome/Firefox/Safari)
+* Server: rosbridge (version 1.0/2.0)
+* Client: Web browser with Websocket (Chrome/Firefox/Safari)
 
 Libraries
 ---------------------
