@@ -40,11 +40,7 @@ test('MessageViewController.generateTableRowFromMessage', function() {
 	 msg : 'this is test message'
        };
        var controller = new wxconsole.MessageViewController(500);
-       equal(controller.generateTableRowFromMessage(msg1, 'id1', false),
+       equal(controller.generateTableRowFromMessage(msg1, 'id1'),
 	     '<tr id="id1"><td><i class="icon-exclamation-sign"></i><a onclick="$(\'#modal_message0\').modal()" class="Warn">this is test message</a><div id="modal_message0" class="modal hide"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">x</button><h3>Message</h3></div><div class="modal-body"><p><strong>Node: </strong>/node1</p><p><strong>Time: </strong>100.123</p><p><strong>Severity: </strong>Warn</p><p class="break-word"><strong>Location: </strong>main.c:in `Func()\':145</p><p class="break-word"><strong>Published Topics: </strong>/topic1, /topic2, /rosout</p><p /><h3>this is test message</h3></div><div class="modal-footer"><a href="#" class="btn" data-dismiss="modal">Close</a></div></div></td><td><span class="label label-warning">Warn</span></td><td class="break-word">/node1</td><td class="break-word">100.123</td><td class="break-word">/topic1, /topic2, /rosout</td><td class="break-word">main.c:in `Func()\':145</td></tr>'
 	    );
-       equal(controller.generateTableRowFromMessage(msg1, 'id2', true),
-	     '<tr id="id2" class="hide"><td><i class="icon-exclamation-sign"></i><a onclick="$(\'#modal_message0\').modal()" class="Warn">this is test message</a><div id="modal_message0" class="modal hide"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">x</button><h3>Message</h3></div><div class="modal-body"><p><strong>Node: </strong>/node1</p><p><strong>Time: </strong>100.123</p><p><strong>Severity: </strong>Warn</p><p class="break-word"><strong>Location: </strong>main.c:in `Func()\':145</p><p class="break-word"><strong>Published Topics: </strong>/topic1, /topic2, /rosout</p><p /><h3>this is test message</h3></div><div class="modal-footer"><a href="#" class="btn" data-dismiss="modal">Close</a></div></div></td><td><span class="label label-warning">Warn</span></td><td class="break-word">/node1</td><td class="break-word">100.123</td><td class="break-word">/topic1, /topic2, /rosout</td><td class="break-word">main.c:in `Func()\':145</td></tr>'
-	    );
-
      });

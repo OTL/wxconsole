@@ -1,8 +1,10 @@
-// Copyright 2012 OTL. 
-// 
-// @license BSD license
-// 
-// @author Takashi Ogura <t.ogura@gmail.com>
+/** Copyright 2012 OTL.
+ *
+ * @license BSD license
+ *
+ * @author Takashi Ogura <t.ogura@gmail.com>
+ *
+ */
 
 /**
  * namespace of wxconsole
@@ -11,7 +13,7 @@ var wxconsole = {};
 
 /**
  * Convert rosgraph_msgs/Log level byte to String
- * 
+ *
  * @param {Number} level level of Log
  * @returns {String} debug level Fatal/Error/Warn/Info/Debug/Unknown(for error)
  */
@@ -96,6 +98,11 @@ wxconsole.generateLocationString = function(msg) {
   return msg.file + ':in `' + msg.function + "':" + msg.line;;
 };
 
+/**
+ * filter by user search form
+ * @class filter by user search form
+ * @param {String} name name of this filter (not used now)
+ */
 wxconsole.SearchFilter = function(name) {
   if (name) {
     this.name = name;
@@ -121,7 +128,7 @@ wxconsole.SearchFilter = function(name) {
     var regex = new RegExp(self.text);
     return targetText.match(regex);
   };
-  
+
   this.reject = function(msg) {
     if (!this.enabled) {
       return false;
@@ -140,10 +147,10 @@ wxconsole.SearchFilter = function(name) {
       include = true;
     } else if (this.where['Node'] && compareFunc(msg.name)){
       include = true;
-    } else if (this.where['Location'] && 
+    } else if (this.where['Location'] &&
 	       (compareFunc(wxconsole.generateLocationString(msg)))) {
       include = true;
-    } else if (this.where['Topics'] && 
+    } else if (this.where['Topics'] &&
 	       compareFunc(msg.topics.toString())) {
       include = true;
     }
@@ -155,14 +162,18 @@ wxconsole.SearchFilter = function(name) {
   };
 };
 
-wxconsole.SiverityFilter = function() {
+/**
+ * filter by severity level
+ * @class filter by severity level
+ */
+wxconsole.SeverityFilter = function() {
   var selectedLevel_ = {Unknown:false,
 			Debug:false,
 			Info:false,
 			Warn:false,
 			Error:false,
 			Fatal:false};
-  this.name = 'SiverityFilter';
+  this.name = 'SeverityFilter';
   this.reject = function(msg) {
     return selectedLevel_[wxconsole.levelToString(msg.level)];
   };
@@ -171,12 +182,153 @@ wxconsole.SiverityFilter = function() {
   };
 };
 
+
+/**
+ * @class View Controller for search filter
+ * @param {Number} filterNumber
+ * @param {wxconsole.SearchFilter} filter target filter
+ * @param {wxconsole.MessageViewController} parent
+ */
+wxconsole.SearchFilterViewController = function(filterNumber, filter, parent) {
+  this.filter = filter;
+  this.filterNumber = filterNumber;
+  var self = this;
+
+  this.updateFilterButtons = function() {
+    var firstForm = $('#filters form:first');
+    firstForm.find('button:nth-child(12)').addClass('disabled');
+    firstForm.next().find('button:nth-child(12)').removeClass('disabled');
+    var lastForm = $('#filters form:last');
+    lastForm.prev().find('button:nth-child(11)').removeClass('disabled');
+    lastForm.find('button:nth-child(11)').addClass('disabled');
+  };
+
+  this.init = function() {
+    // controller
+    $('#filter_enabled' + filterNumber).button('toggle');
+    $('#filter_enabled' + filterNumber).click(
+      function(ev) {
+	if (ev.clientX == 0 && ev.clientY == 0) {
+	  // dummy event by form submit
+	  return true;
+	} else {
+	self.filter.enabled = !self.filter.enabled;
+	  $(this).button('toggle');
+	}
+	return false;
+      });
+    $('#filterRegExCheck' + filterNumber).change(
+      function(ev) {
+	if (ev.clientX == 0 && ev.clientY == 0) {
+	  // dummy event by form submit
+	  return true;
+	} else {
+	  self.filter.regex = !self.filter.regex;
+	}
+	return false;
+      });
+
+    $('#filterInclude' + filterNumber).change(
+      function() {
+	if ($(this).val() == 'Include') {
+	  self.filter.include = true;
+	} else {
+	  self.filter.include = false;
+	}
+      });
+    $('#filterRemove' + filterNumber).click(
+      function(ev){
+	if (ev.clientX == 0 && ev.clientY == 0) {
+	  // dummy event by form submit
+	  return true;
+	}
+	var body = $('body');
+	var currentBottom = parseInt(body.css('padding-bottom'));
+	var height = $(this).parent().outerHeight(true);
+	body.css('padding-bottom', (currentBottom - height) + 'px');
+	$(this).parent().remove();
+	// todo remove
+	self.filter.enabled = false;
+	parent.updateAllMessageFilteringResult();
+	self.updateFilterButtons();
+
+	return false;
+      });
+    $('#filterUp' + filterNumber).click(
+      function(ev) {
+	if (ev.clientX == 0 && ev.clientY == 0) {
+	  // dummy event by form submit
+	  return true;
+	}
+	var index = parent.filters.indexOf(self.filter);
+
+	if (index < 0){
+	  console.error('this is not possible');
+	} else {
+	  if (index > 1) {
+	    parent.filters[index] = parent.filters[index-1];
+	    parent.filters[index-1] = self.filter;
+	    var thisForm = $(this).parent();
+	    var upForm = thisForm.prev();
+	    upForm.before(thisForm);
+	    parent.updateAllMessageFilteringResult();
+	    self.updateFilterButtons();
+	  }
+	}
+	return false;
+      });
+    $('#filterDown' + filterNumber).click(
+      function(ev) {
+	if (ev.clientX == 0 && ev.clientY == 0) {
+	  // dummy event by form submit
+	  return true;
+	}
+	var index = parent.filters.indexOf(self.filter);
+	if (index < 0){
+	  console.error('this is not possible');
+	} else {
+	  if (index < (parent.filters.length - 1)) {
+	    parent.filters[index] = parent.filters[index+1];
+	    parent.filters[index+1] = self.filter;
+	    var thisForm = $(this).parent();
+	    var downForm = thisForm.next();
+	    downForm.after(thisForm);
+	    parent.updateAllMessageFilteringResult();
+	    self.updateFilterButtons();
+	  }
+	}
+	return false;
+      });
+
+    $('#filterForm' + filterNumber).submit(
+      function() {
+	self.filter.text = $('#filterText' + filterNumber).val();
+	parent.updateAllMessageFilteringResult();
+	return false;
+      });
+
+    var selector = new Array('Message', 'Node', 'Location', 'Topics');
+    for (var i = 0; i < selector.length; i++){
+      var button = $('#filter' + selector[i] + filterNumber);
+      button.button('toggle');
+      button.click(
+	function(ev){
+	  self.filter.where[selector[i]] = !self.filter.where[selector[i]];
+	  $(this).button('toggle');
+	  return false;
+	});
+    }
+
+    self.updateFilterButtons();
+  };
+};
+
 /**
  * @class Message Controller
  * @param {Number} bufferSize number of messaged for displayed
  */
 wxconsole.MessageViewController = function(bufferSize) {
-  
+
   /**
    * max messages displayed in table
    * @type Number
@@ -210,20 +362,20 @@ wxconsole.MessageViewController = function(bufferSize) {
    */
   this.isPaused = false;
   this.filters = new Array();
-  var siverityFilter_ = new wxconsole.SiverityFilter();
+  var siverityFilter_ = new wxconsole.SeverityFilter();
   this.filters.push(siverityFilter_);
 
-  var numberOfReceivedMessages_ = 0;
+  this.filterControllers = new Array();
   this.messages = new Array();
-  
+
   var self = this;
 
-
   this.addFilter = function(){
+    // minus 1 is for severity filter
     var filterNumber = self.filters.length - 1;
+    // model
     var newFilter = new wxconsole.SearchFilter('Search' + filterNumber);
     self.filters.push(newFilter);
-
 
     // view
     $('#filters').append(
@@ -244,72 +396,14 @@ wxconsole.MessageViewController = function(bufferSize) {
 	'<button class="btn" id="filterTopics' + filterNumber + '">Topics</button>' +
 	'<button class="btn btn-danger" id="filterRemove' + filterNumber + '">' +
 	'<i class="icon-minus-sign"></i></button>' +
-	'<button class="btn disabled" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
-	'<button class="btn disabled" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
+	'<button class="btn" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
+	'<button class="btn" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
 	'</form>');
-
     // controller
-    $('#filter_enabled' + filterNumber).button('toggle');
-    $('#filter_enabled' + filterNumber).click(
-      function(ev) {
-	if (ev.clientX == 0 && ev.clientY == 0) {
-	 // dummy event by form submit
-	  return true;
-	} else {
-	  self.filters[filterNumber + 1].enabled = !self.filters[filterNumber + 1].enabled;
-	  $(this).button('toggle');
-	}
-	return false;
-      });
-    $('#filterRegExCheck' + filterNumber).change(
-      function(ev) {
-	if (ev.clientX == 0 && ev.clientY == 0) {
-	  // dummy event by form submit
-	  return true;
-	} else {
-	  self.filters[filterNumber + 1].regex = !self.filters[filterNumber + 1].regex;
-	}
-	return false;
-      });
+    var filterController = new wxconsole.SearchFilterViewController(filterNumber, newFilter, self);
+    filterController.init();
+    self.filterControllers.push(filterController);
 
-    $('#filterInclude' + filterNumber).change(
-      function() {
-	if ($(this).val() == 'Include') {
-	  self.filters[filterNumber + 1].include = true;
-	} else {
-	  self.filters[filterNumber + 1].include = false;
-	}
-      });
-    $('#filterRemove' + filterNumber).click(
-      function(){
-	var body = $('body');
-	var currentBottom = parseInt(body.css('padding-bottom'));
-	var height = $(this).parent().outerHeight(true);
-	body.css('padding-bottom', (currentBottom - height) + 'px');
-	$(this).parent().remove();
-	self.filters[filterNumber + 1].enabled = false;
-	self.updateAll();
-	return false;
-    });
-
-    $('#filterForm' + filterNumber).submit(
-      function() {
-	self.filters[filterNumber + 1].text = $('#filterText' + filterNumber).val();
-	self.updateAll();
-	return false;
-      });
-    
-    var selector = new Array('Message', 'Node', 'Location', 'Topics');
-    for (var i = 0; i < selector.length; i++){
-      var button = $('#filter' + selector[i] + filterNumber);
-      button.button('toggle');
-      button.click(
-	function(ev){
-	  self.filters[filterNumber + 1].where[selector[i]] = !self.filters[filterNumber + 1].where[selector[i]];
-	  $(this).button('toggle');
-	  return false;
-	});
-    }
     var body = $('body');
     var currentBottom = parseInt(body.css('padding-bottom'));
     var height = $('#filterForm' + filterNumber).outerHeight(true);
@@ -347,7 +441,7 @@ wxconsole.MessageViewController = function(bufferSize) {
       .delay(5000).fadeOut(1000);
   };
 
-  this.generateTableRowFromMessage = function(msg, id, hide) {
+  this.generateTableRowFromMessage = function(msg, id) {
     var location = wxconsole.generateLocationString(msg);
     var maxLocationLength = 50;
     if (location.length  > maxLocationLength) {
@@ -358,17 +452,11 @@ wxconsole.MessageViewController = function(bufferSize) {
     if (topics.length  > maxTopicsLength) {
       topics = topics.substring(0, maxTopicsLength) + '...';
     }
-    var tr = '';
-    if (hide) {
-      tr = '<tr id="' + id + '" class="hide">';
-    } else {
-      tr = '<tr id="' + id + '">';
-    }
-    return tr +
+    return '<tr id="' + id + '">' +
       '<td><i class="' + wxconsole.levelToTBIcon(msg.level) +
-      '"></i>' + 
-      '<a onclick="$(\'#modal_message' + numberOfReceivedMessages_ + '\').modal()" class="' + wxconsole.levelToString(msg.level) + '">' + msg.msg + '</a>' + 
-      '<div id="modal_message' + numberOfReceivedMessages_ + '" class="modal hide">' +
+      '"></i>' +
+      '<a onclick="$(\'#modal_message' + self.messages.length + '\').modal()" class="' + wxconsole.levelToString(msg.level) + '">' + msg.msg + '</a>' +
+      '<div id="modal_message' + self.messages.length + '" class="modal hide">' +
       '<div class="modal-header">'+
       '<button type="button" class="close" data-dismiss="modal">x</button>' +
       '<h3>Message</h3>' +
@@ -400,7 +488,7 @@ wxconsole.MessageViewController = function(bufferSize) {
     return false;
   };
 
-  this.updateAll = function() {
+  this.updateAllMessageFilteringResult = function() {
     for (var i = 0;  i < self.messages.length; i++) {
       if (self.reject(self.messages[i])) {
 	$('#logTable' + i).addClass('hide');
@@ -411,21 +499,19 @@ wxconsole.MessageViewController = function(bufferSize) {
   };
 
   this.onMessageCallback = function(msg) {
-    var hide = (self.isPaused || self.reject(msg));
-    var id = 'logTable' + numberOfReceivedMessages_;
-
-    $('#' + self.tableId + ' > tbody:last').append(self.generateTableRowFromMessage(msg, id, hide));
-    
-    if (!hide) {
+    var id = 'logTable' + self.messages.length;
+    $('#' + self.tableId + ' > tbody:last').append(self.generateTableRowFromMessage(msg, id));
+    if (self.isPaused || self.reject(msg)) {
+      // hide temporally
+      $('#' + id).addClass('hide');
+    } else {
+      // scroll to bottom
       $('html, body').animate({scrollTop: $('#' + self.messageId).offset().top}, 0);
     }
-    numberOfReceivedMessages_++;
     self.messages.push(msg);
-    if (numberOfReceivedMessages_ >
-	self.MaxNumberOfDisplayedMessages) {
+    if (self.messages.length > self.MaxNumberOfDisplayedMessages) {
       self.messages.shift();
-      // ToDo
-      // $('#' + self.tableId + ' > tbody').contents().first().remove();
+      $('#' + self.tableId + ' > tbody').contents().first().remove();
     }
   };
 
@@ -441,7 +527,6 @@ wxconsole.MessageViewController = function(bufferSize) {
 
   this.clear = function(){
     $('#' + self.tableId + ' > tbody:last').html("");
-    numberOfReceivedMessages_ = 0;
     self.messages = new Array();
   };
 };
@@ -464,7 +549,7 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
 
   /**
    * version name of rosbridge
-   * @description this is used in html id. if you want to change this, 
+   * @description this is used in html id. if you want to change this,
    * check html source.
    * @type {String}
    */
@@ -476,7 +561,7 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
       connection_.callService('/rosjs/subscribe',
 			      [self.topic, -1],
 			    function(e){});
-      
+
     } catch (error) {
       console.error('Problem subscribing!');
       return;
@@ -509,7 +594,7 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
     close();
     connection_ = new ros.Connection(
       wxconsole.MakeWebsocketUri(self.host, self.port));
-    // clear 
+    // clear
     connection_.setOnClose(self.controller.onCloseCallback);
     connection_.setOnError(self.controller.onErrorCallback);
     connection_.setOnOpen(self.connect);
@@ -535,7 +620,7 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
 
   /**
    * version name of rosbridge
-   * @description this is used in html id. if you want to change this, 
+   * @description this is used in html id. if you want to change this,
    * check html source.
    * @type {String}
    */
@@ -585,7 +670,7 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
     close();
     connection_ = new ros.Bridge(
       wxconsole.MakeWebsocketUri(self.host, self.port));
-    // clear 
+    // clear
     connection_.onClose = self.controller.onCloseCallback;
     connection_.onError = self.controller.onErrorCallback;
     connection_.onOpen = self.connect;
@@ -650,7 +735,7 @@ wxconsole.App = function() {
     }
   };
 
-  
+
   this.init = function() {
     $('.nav-tabs').button();
     $(".alert").alert();
@@ -658,7 +743,7 @@ wxconsole.App = function() {
 
     this.getCookies();
     var controller = new wxconsole.MessageViewController(bufferSize);
-    
+
     if (hostname == "" || hostname == null) {
       $('#hostname').val("localhost");
     } else {
@@ -685,7 +770,7 @@ wxconsole.App = function() {
     $('#level_buttons > .btn').click(
       function(){
 	controller.toggleSelectedLevel($(this).text());
-	controller.updateAll();
+	controller.updateAllMessageFilteringResult();
 	$(this).button('toggle');
       });
     $('#pause_button').click(
@@ -738,7 +823,7 @@ wxconsole.App = function() {
 	} else {
 	  // set variables to current wx instance
 	  adaptor.topic = topic;
-	  controller.MaxNumberOfDisplayedMessages = bufferSize;
+	  controller.MaxNumberOfDisplayedMessages = inputBufferSize;
 	  // reconnect
 	  adaptor.connect();
 	}
