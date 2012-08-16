@@ -2,12 +2,13 @@
  *
  * @license BSD license
  *
+ * @version 1.0.0
  * @author Takashi Ogura <t.ogura@gmail.com>
  *
  */
 
 /**
- * namespace of wxconsole
+ * @namespace Holds wxconsole objects.
  */
 var wxconsole = {};
 
@@ -119,17 +120,37 @@ wxconsole.SearchFilter = function(name) {
     Location: true,
     Topics: true
   };
+
   var self = this;
 
-  this.stringCompare = function(targetText) {
+  /**
+   * judge by string
+   * @param {String} targetText string for search
+   * @returns {boolean} true: includes
+   */
+  this.stringInclude = function(targetText) {
     return (targetText.indexOf(self.text) >= 0);
   };
-  this.regexCompare = function(targetText) {
+
+  /**
+   * judge by RegExp
+   * @param {String} targetText
+   * @returns {boolean} true: includes
+   */
+  this.regexInclude = function(targetText) {
     var regex = new RegExp(self.text);
     return targetText.match(regex);
   };
 
-  this.reject = function(msg) {
+};
+
+wxconsole.SearchFilter.prototype = {
+  /**
+   * check a msg reject or not
+   * @param {rosgraph_msgs.Log} msg message for checked
+   * @returns {bool} true: reject this message
+   */
+  reject: function(msg) {
     if (!this.enabled) {
       return false;
     }
@@ -138,9 +159,9 @@ wxconsole.SearchFilter = function(name) {
     }
     var compareFunc = null;
     if (this.regex) {
-      compareFunc = this.regexCompare;
+      compareFunc = this.regexInclude;
     } else {
-      compareFunc = this.stringCompare;
+      compareFunc = this.stringInclude;
     }
     var include = false;
     if (this.where['Message'] && compareFunc(msg.msg)) {
@@ -159,7 +180,7 @@ wxconsole.SearchFilter = function(name) {
     } else {
       return include;
     }
-  };
+  }
 };
 
 /**
@@ -167,19 +188,24 @@ wxconsole.SearchFilter = function(name) {
  * @class filter by severity level
  */
 wxconsole.SeverityFilter = function() {
-  var selectedLevel_ = {Unknown:false,
-			Debug:false,
-			Info:false,
-			Warn:false,
-			Error:false,
-			Fatal:false};
+  this.selectedLevel = {Unknown: false,
+			Debug: false,
+			Info: false,
+			Warn: false,
+			Error: false,
+			Fatal: false};
   this.name = 'SeverityFilter';
-  this.reject = function(msg) {
-    return selectedLevel_[wxconsole.levelToString(msg.level)];
-  };
-  this.toggleSelectedLevel = function(levelText){
-    selectedLevel_[levelText] = !selectedLevel_[levelText];
-  };
+};
+
+wxconsole.SeverityFilter.prototype = {
+
+  reject: function(msg) {
+    return this.selectedLevel[wxconsole.levelToString(msg.level)];
+  },
+
+  toggleSelectedLevel: function(levelText){
+    this.selectedLevel[levelText] = !this.selectedLevel[levelText];
+  }
 };
 
 
@@ -190,10 +216,23 @@ wxconsole.SeverityFilter = function() {
  * @param {wxconsole.MessageViewController} parent
  */
 wxconsole.SearchFilterViewController = function(filterNumber, filter, parent) {
+
+  /**
+   * @type {wxconsole.SearchFilter}
+   */
   this.filter = filter;
+
+  /**
+   * id number of this filter
+   * @type {Number}
+   */
   this.filterNumber = filterNumber;
+
   var self = this;
 
+  /**
+   * disable up button if it is top, disable down buton if it is bottom.
+   */
   this.updateFilterButtons = function() {
     var firstForm = $('#filters form:first');
     firstForm.find('button:nth-child(12)').addClass('disabled');
@@ -203,6 +242,10 @@ wxconsole.SearchFilterViewController = function(filterNumber, filter, parent) {
     lastForm.find('button:nth-child(11)').addClass('disabled');
   };
 
+
+  /**
+   * initialize controller
+   */
   this.init = function() {
     // controller
     $('#filter_enabled' + filterNumber).button('toggle');
@@ -358,7 +401,7 @@ wxconsole.MessageViewController = function(bufferSize) {
   this.messageId = 'message';
   /**
    * paused or running
-   * @type Boolean
+   * @type boolean
    */
   this.isPaused = false;
   this.filters = new Array();
@@ -537,6 +580,7 @@ wxconsole.MessageViewController = function(bufferSize) {
  * @param {Number} port
  * @param {String} topic
  * @param {wxconsole.MessageViewController} controller
+ * @see http://rosbridge.org
  */
 wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
   this.host = host;
@@ -608,6 +652,7 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
  * @param {Number} port
  * @param {String} topic
  * @param {wxconsole.MessageViewController} controller
+ * @see http://rosbridge.org
  */
 wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
   this.host = host;
@@ -622,6 +667,7 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
    * version name of rosbridge
    * @description this is used in html id. if you want to change this,
    * check html source.
+   * @const 
    * @type {String}
    */
   this.ROSBRIDGE_VERSION = '2.0';
@@ -692,6 +738,7 @@ wxconsole.setRosbridgeVersion = function(version) {
 };
 
 /**
+ * create wxconsole Application
  * @class wxconsole Application class
  */
 wxconsole.App = function() {
