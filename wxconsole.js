@@ -95,6 +95,11 @@ wxconsole.MakeWebsocketUri = function(host, port) {
   return "ws://" + host + ":" + port.toString();
 };
 
+/**
+ * generate string for location from a message
+ * @param {rosgraph_msgs.Log} msg
+ * @returns {String} file:in `func':line
+ */
 wxconsole.generateLocationString = function(msg) {
   return msg.file + ':in `' + msg.function + "':" + msg.line;;
 };
@@ -235,13 +240,14 @@ wxconsole.SearchFilterViewController = function(filterNumber, filter, parent) {
    */
   this.updateFilterButtons = function() {
     var firstForm = $('#filters form:first');
+    // up
     firstForm.find('button:nth-child(12)').addClass('disabled');
     firstForm.next().find('button:nth-child(12)').removeClass('disabled');
     var lastForm = $('#filters form:last');
+    // down
     lastForm.prev().find('button:nth-child(11)').removeClass('disabled');
     lastForm.find('button:nth-child(11)').addClass('disabled');
   };
-
 
   /**
    * initialize controller
@@ -366,6 +372,35 @@ wxconsole.SearchFilterViewController = function(filterNumber, filter, parent) {
   };
 };
 
+
+/**
+ * generate filter view html
+ * @param {Number} filterNumber
+ * @returns {String} filter html
+ */
+wxconsole.generateFilterHTML = function(filterNumber) {
+  return '<form class="form-inline filter-input" id="filterForm' + filterNumber + '">' +
+    '<button class="btn" id="filter_enabled' + filterNumber + '" data-toggle="button">Enabled</button>' +
+    '<input type="text" class="input-small span2" id="filterText' + filterNumber + '">' +
+    '<select id="filterInclude' + filterNumber + '" class="span2">' +
+    '<option>Include</option>' +
+    '<option>Exclude</option>' +
+    '</select>' +
+    '<label class="checkbox">' +
+    '<input type="checkbox" id="filterRegExCheck' + filterNumber + '"> Regex' +
+    '</label>' +
+    '<strong>From</strong>' +
+    '<button class="btn" id="filterMessage' + filterNumber + '">Message</button>' +
+    '<button class="btn" id="filterNode' + filterNumber + '">Node</button>' +
+    '<button class="btn" id="filterLocation' + filterNumber + '">Location</button>' +
+    '<button class="btn" id="filterTopics' + filterNumber + '">Topics</button>' +
+    '<button class="btn btn-danger" id="filterRemove' + filterNumber + '">' +
+    '<i class="icon-minus-sign"></i></button>' +
+    '<button class="btn" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
+    '<button class="btn" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
+    '</form>';
+};
+
 /**
  * @class Message Controller
  * @param {Number} bufferSize number of messaged for displayed
@@ -421,27 +456,8 @@ wxconsole.MessageViewController = function(bufferSize) {
     self.filters.push(newFilter);
 
     // view
-    $('#filters').append(
-     	'<form class="form-inline filter-input" id="filterForm' + filterNumber + '">' +
-	'<button class="btn" id="filter_enabled' + filterNumber + '" data-toggle="button">Enabled</button>' +
-	'<input type="text" class="input-small span2" id="filterText' + filterNumber + '">' +
-	'<select id="filterInclude' + filterNumber + '" class="span2">' +
-	'<option>Include</option>' +
-	'<option>Exclude</option>' +
-	'</select>' +
-	'<label class="checkbox">' +
-	'<input type="checkbox" id="filterRegExCheck' + filterNumber + '"> Regex' +
-	'</label>' +
-	'<strong>From</strong>' +
-	'<button class="btn" id="filterMessage' + filterNumber + '">Message</button>' +
-	'<button class="btn" id="filterNode' + filterNumber + '">Node</button>' +
-	'<button class="btn" id="filterLocation' + filterNumber + '">Location</button>' +
-	'<button class="btn" id="filterTopics' + filterNumber + '">Topics</button>' +
-	'<button class="btn btn-danger" id="filterRemove' + filterNumber + '">' +
-	'<i class="icon-minus-sign"></i></button>' +
-	'<button class="btn" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
-	'<button class="btn" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
-	'</form>');
+    $('#filters').append(wxconsole.generateFilterHTML(filterNumber));
+
     // controller
     var filterController = new wxconsole.SearchFilterViewController(filterNumber, newFilter, self);
     filterController.init();
