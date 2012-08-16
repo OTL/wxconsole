@@ -1,1 +1,6 @@
-include $(shell rospack find mk)/cmake.mk
+SOURCE=wxconsole.js
+
+all: doc
+
+doc: $(SOURCE)
+	jsdoc -d=doc $<
