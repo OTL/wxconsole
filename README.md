@@ -1,10 +1,11 @@
 wxconsole
 ========================
 
-wxconsole is web rxconsole.
+**wxconsole** is web rxconsole.
+rxconsole is Log viewer for ROS (Robot Operating System: http://ros.org).
+wxconsole uses rosbridge, that is ROS bridge using websocket.
 
-You can try it from here.
-
+You can try it here.
 http://otl.github.com/wxconsole/
 
 
