@@ -72,7 +72,7 @@ test('SearchFilter.reject', function() {
        
      });
 
-test('SeverityFilter', function() {
+test('SeverityFilter.reject', function() {
        var filter = new wxconsole.SeverityFilter();
        equal(filter.name, 'SeverityFilter');
        var msgDebug = {level: 1};
