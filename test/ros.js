@@ -26,3 +26,4 @@ test('Rosbridge2Adaptor', function() {
        equal(adaptor.controller, controller);
        equal(adaptor.ROSBRIDGE_VERSION, '2.0');
 });
+
