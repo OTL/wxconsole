@@ -544,6 +544,9 @@ wxconsole.MessageViewController = function(bufferSize) {
     self.isPaused = !self.isPaused;
   };
 
+  /**
+   * callback on rosbridge connection is closed
+   */
   this.onCloseCallback = function() {
     $('#' + self.messageId).append(
       '<div class="alert alert-block alert-error">'
@@ -552,6 +555,10 @@ wxconsole.MessageViewController = function(bufferSize) {
       .delay(5000).fadeOut(1000);
   };
 
+  /**
+   * callback on rosbridge connection error
+   * @param {} e error
+   */
   this.onErrorCallback = function (e) {
     $('#' + self.messageId).append(
       '<div class="alert alert-block alert-error">'
@@ -560,6 +567,12 @@ wxconsole.MessageViewController = function(bufferSize) {
       .delay(5000).fadeOut(1000);
   };
 
+  /**
+   * generate table row for a message
+   * @param {rosgraph_msgs.Log} msg
+   * @param {String} id id for tr tag. (without '#')
+   * @returns {String} html (<tr> ....</tr>)
+   */
   this.generateTableRowFromMessage = function(msg, id) {
     var location = wxconsole.generateLocationString(msg);
     var maxLocationLength = 50;
@@ -598,6 +611,11 @@ wxconsole.MessageViewController = function(bufferSize) {
       '</tr>';
   };
 
+  /**
+   * check a message with all filters
+   * @param {rosgraph_msgs.Log} msg message for being checked
+   * @returns {boolean} true: reject this message, false: accept
+   */
   this.reject = function(msg) {
     for (var i = 0;  i < self.filters.length; i++) {
       if (self.filters[i].reject(msg)) {
@@ -607,6 +625,10 @@ wxconsole.MessageViewController = function(bufferSize) {
     return false;
   };
 
+  /**
+   * update all mesages with all filters.
+   * @description rejected messages are 'hide', accepted not hide.
+   */
   this.updateAllMessageFilteringResult = function() {
     for (var i = 0;  i < self.messages.length; i++) {
       if (self.reject(self.messages[i])) {
@@ -617,6 +639,10 @@ wxconsole.MessageViewController = function(bufferSize) {
     }
   };
 
+  /**
+   * message callback. add message html row to the talbe.
+   * @param {rosgraph_msgs.Log} msg sent message
+   */
   this.onMessageCallback = function(msg) {
     var id = 'logTable' + self.messages.length;
     $('#' + self.tableId + ' > tbody:last').append(self.generateTableRowFromMessage(msg, id));
@@ -634,6 +660,10 @@ wxconsole.MessageViewController = function(bufferSize) {
     }
   };
 
+  /**
+   * callback when rosbridge is connected
+   * @description show connection message and fade out.
+   */
   this.onConnectedCallback = function() {
     $('#' + self.messageId).children().fadeOut(100);
     $('#' + self.messageId).append(
@@ -644,6 +674,9 @@ wxconsole.MessageViewController = function(bufferSize) {
     document.title = self.titleString + ' [' + self.uri + ']';
   };
 
+  /**
+   * clear all table rows
+   */
   this.clear = function(){
     $('#' + self.tableId + ' > tbody:last').html("");
     self.messages = new Array();
@@ -675,6 +708,9 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
    */
   this.ROSBRIDGE_VERSION = '1.0';
 
+  /**
+   * connect to rosbridge
+   */
   this.connect = function(){
     try {
       connection_.handlers = new Array();
@@ -748,6 +784,10 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
    */
   this.ROSBRIDGE_VERSION = '2.0';
 
+  /**
+   * connect to rosbridge
+   * @param {} e onopen callback argument
+   */
   this.connect = function(e){
     try {
       connection_.unsubscribe(self.topic);
