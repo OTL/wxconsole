@@ -9,6 +9,7 @@
 
 /**
  * @namespace Holds wxconsole objects.
+ * @description wxconsole is rxconsole for rosbridge.
  */
 var wxconsole = {};
 
@@ -147,6 +148,17 @@ wxconsole.SearchFilter = function(name) {
     return targetText.match(regex);
   };
 
+  this.toggleEnabled = function() {
+    self.enabled = !self.enabled;
+  };
+
+  this.toggleRegex = function() {
+    self.regex = !self.regex;
+  };
+
+  this.toggleWhere = function(where) {
+    self.where[where] = !self.where[where];
+  };
 };
 
 wxconsole.SearchFilter.prototype = {
@@ -174,10 +186,10 @@ wxconsole.SearchFilter.prototype = {
     } else if (this.where['Node'] && compareFunc(msg.name)){
       include = true;
     } else if (this.where['Location'] &&
-	       (compareFunc(wxconsole.generateLocationString(msg)))) {
+               (compareFunc(wxconsole.generateLocationString(msg)))) {
       include = true;
     } else if (this.where['Topics'] &&
-	       compareFunc(msg.topics.toString())) {
+               compareFunc(msg.topics.toString())) {
       include = true;
     }
     if (this.include) {
@@ -193,21 +205,38 @@ wxconsole.SearchFilter.prototype = {
  * @class filter by severity level
  */
 wxconsole.SeverityFilter = function() {
+  /**
+   * @type {Hash} levels. true means reject this level.
+   * @description default: not reject anything.
+   */
   this.selectedLevel = {Unknown: false,
-			Debug: false,
-			Info: false,
-			Warn: false,
-			Error: false,
-			Fatal: false};
+                        Debug: false,
+                        Info: false,
+                        Warn: false,
+                        Error: false,
+                        Fatal: false};
+  /**
+   * @type {String} name of this filter.
+   * @description not used for now.
+   */
   this.name = 'SeverityFilter';
 };
 
 wxconsole.SeverityFilter.prototype = {
 
+  /**
+   * judge a message
+   * @param {rosgraph_msgs.Log} msg message for test
+   * @returns {boolean} true: reject
+   */
   reject: function(msg) {
     return this.selectedLevel[wxconsole.levelToString(msg.level)];
   },
 
+  /**
+   * toggle severity filter of a level
+   * @param {String} levelText
+   */
   toggleSelectedLevel: function(levelText){
     this.selectedLevel[levelText] = !this.selectedLevel[levelText];
   }
@@ -240,133 +269,164 @@ wxconsole.SearchFilterViewController = function(filterNumber, filter, parent) {
    */
   this.updateFilterButtons = function() {
     var firstForm = $('#filters form:first');
+    var upButtonQuery = '.filter-up';
+    var downButtonQuery = '.filter-down';
     // up
-    firstForm.find('button:nth-child(12)').addClass('disabled');
-    firstForm.next().find('button:nth-child(12)').removeClass('disabled');
+    firstForm.find(upButtonQuery).addClass('disabled');
+    firstForm.next().find(upButtonQuery).removeClass('disabled');
     var lastForm = $('#filters form:last');
     // down
-    lastForm.prev().find('button:nth-child(11)').removeClass('disabled');
-    lastForm.find('button:nth-child(11)').addClass('disabled');
+    lastForm.prev().find(downButtonQuery).removeClass('disabled');
+    lastForm.find(downButtonQuery).addClass('disabled');
+  };
+
+
+  /**
+   * update table
+   */
+  this.updateResults = function() {
+    parent.updateAllMessageFilteringResult();
   };
 
   /**
    * initialize controller
    */
   this.init = function() {
+    var thisForm = $('#filterForm' + self.filterNumber);
     // controller
-    $('#filter_enabled' + filterNumber).button('toggle');
-    $('#filter_enabled' + filterNumber).click(
+
+    // incremental search (heavy..)
+    thisForm.find('#filterText' + self.filterNumber).bind('textchange',
+         function(event, previousText) {
+           self.filter.text = $(this).val();
+           self.updateResults();
+         });
+
+    thisForm.find('#filter_enabled' + self.filterNumber)
+      .button('toggle')
+      .click(
       function(ev) {
-	if (ev.clientX == 0 && ev.clientY == 0) {
-	  // dummy event by form submit
-	  return true;
-	} else {
-	self.filter.enabled = !self.filter.enabled;
-	  $(this).button('toggle');
-	}
-	return false;
-      });
-    $('#filterRegExCheck' + filterNumber).change(
-      function(ev) {
-	if (ev.clientX == 0 && ev.clientY == 0) {
-	  // dummy event by form submit
-	  return true;
-	} else {
-	  self.filter.regex = !self.filter.regex;
-	}
-	return false;
+        if (ev.clientX == 0 && ev.clientY == 0) {
+          // dummy event by form submit
+          // this is bug?
+          self.filter.text = thisForm.find('#filterText' + self.filterNumber).val();
+          self.updateResults();
+          return false;
+        }
+        self.filter.toggleEnabled();
+        $(this).button('toggle');
+        self.updateResults();
+        return false;
       });
 
-    $('#filterInclude' + filterNumber).change(
-      function() {
-	if ($(this).val() == 'Include') {
-	  self.filter.include = true;
-	} else {
-	  self.filter.include = false;
-	}
+    thisForm.find('#filterRegExCheck' + self.filterNumber).change(
+      function(ev) {
+        self.filter.toggleRegex();
+        self.updateResults();
+        return false;
       });
-    $('#filterRemove' + filterNumber).click(
+
+    thisForm.find('#filterInclude' + self.filterNumber).change(
+      function(ev) {
+        if ($(this).val() == 'Include') {
+          self.filter.include = true;
+        } else {
+          self.filter.include = false;
+        }
+        self.updateResults();
+        return false;
+      });
+
+    thisForm.find('#filterRemove' + self.filterNumber).click(
       function(ev){
-	if (ev.clientX == 0 && ev.clientY == 0) {
-	  // dummy event by form submit
-	  return true;
-	}
-	var body = $('body');
-	var currentBottom = parseInt(body.css('padding-bottom'));
-	var height = $(this).parent().outerHeight(true);
-	body.css('padding-bottom', (currentBottom - height) + 'px');
-	$(this).parent().remove();
-	// todo remove
-	self.filter.enabled = false;
-	parent.updateAllMessageFilteringResult();
-	self.updateFilterButtons();
-
-	return false;
+        var body = $('body');
+        var currentBottom = parseInt(body.css('padding-bottom'));
+        var height = $(this).parent().outerHeight(true);
+        body.css('padding-bottom', (currentBottom - height) + 'px');
+        $(this).parent().remove();
+        // todo remove
+        self.filter.enabled = false;
+        self.updateResults();
+        self.updateFilterButtons();
+        return false;
       });
-    $('#filterUp' + filterNumber).click(
+
+    thisForm.find('.filter-up').click(
       function(ev) {
-	if (ev.clientX == 0 && ev.clientY == 0) {
-	  // dummy event by form submit
-	  return true;
-	}
-	var index = parent.filters.indexOf(self.filter);
+        var index = parent.filters.indexOf(self.filter);
 
-	if (index < 0){
-	  console.error('this is not possible');
-	} else {
-	  if (index > 1) {
-	    parent.filters[index] = parent.filters[index-1];
-	    parent.filters[index-1] = self.filter;
-	    var thisForm = $(this).parent();
-	    var upForm = thisForm.prev();
-	    upForm.before(thisForm);
-	    parent.updateAllMessageFilteringResult();
-	    self.updateFilterButtons();
-	  }
-	}
-	return false;
+        if (index < 0){
+          console.error('this is not possible');
+        } else {
+          if (index > 1) {
+            parent.filters[index] = parent.filters[index-1];
+            parent.filters[index-1] = self.filter;
+            var thisForm = $(this).parent();
+            var upForm = thisForm.prev();
+            upForm.before(thisForm);
+            self.updateResults();
+            self.updateFilterButtons();
+          }
+        }
+        return false;
       });
-    $('#filterDown' + filterNumber).click(
+
+    thisForm.find('.filter-down').click(
       function(ev) {
-	if (ev.clientX == 0 && ev.clientY == 0) {
-	  // dummy event by form submit
-	  return true;
-	}
-	var index = parent.filters.indexOf(self.filter);
-	if (index < 0){
-	  console.error('this is not possible');
-	} else {
-	  if (index < (parent.filters.length - 1)) {
-	    parent.filters[index] = parent.filters[index+1];
-	    parent.filters[index+1] = self.filter;
-	    var thisForm = $(this).parent();
-	    var downForm = thisForm.next();
-	    downForm.after(thisForm);
-	    parent.updateAllMessageFilteringResult();
-	    self.updateFilterButtons();
-	  }
-	}
-	return false;
+        var index = parent.filters.indexOf(self.filter);
+        if (index < 0){
+          console.error('this is not possible');
+        } else {
+          if (index < (parent.filters.length - 1)) {
+            parent.filters[index] = parent.filters[index+1];
+            parent.filters[index+1] = self.filter;
+            var thisForm = $(this).parent();
+            var downForm = thisForm.next();
+            downForm.after(thisForm);
+            self.updateResults();
+            self.updateFilterButtons();
+          }
+        }
+        return false;
       });
 
-    $('#filterForm' + filterNumber).submit(
-      function() {
-	self.filter.text = $('#filterText' + filterNumber).val();
-	parent.updateAllMessageFilteringResult();
-	return false;
+    var locationButton = thisForm.find('#filterLocation' + self.filterNumber);
+    locationButton.button('toggle');
+    locationButton.click(
+      function(ev){
+        self.filter.toggleWhere('Location');
+        $(this).button('toggle');
+        self.updateResults();
+        return false;
       });
 
-    var selector = new Array('Message', 'Node', 'Location', 'Topics');
-    for (var i = 0; i < selector.length; i++){
-      var button = $('#filter' + selector[i] + filterNumber);
-      button.button('toggle');
-      button.click(
-	function(ev){
-	  self.filter.where[selector[i]] = !self.filter.where[selector[i]];
-	  $(this).button('toggle');
-	  return false;
-	});
-    }
+    thisForm.find('#filterNode' + self.filterNumber)
+      .button('toggle')
+      .click(
+        function(ev){
+        self.filter.toggleWhere('Node');
+          $(this).button('toggle');
+          self.updateResults();
+          return false;
+        });
+    thisForm.find('#filterMessage' + self.filterNumber)
+      .button('toggle')
+      .click(
+        function(ev){
+          self.filter.toggleWhere('Message');
+          $(this).button('toggle');
+          self.updateResults();
+          return false;
+      });
+    thisForm.find('#filterTopics' + self.filterNumber)
+      .button('toggle')
+      .click(
+        function(ev){
+          self.filter.toggleWhere('Topics');
+          $(this).button('toggle');
+          self.updateResults();
+          return false;
+        });
 
     self.updateFilterButtons();
   };
@@ -396,8 +456,8 @@ wxconsole.generateFilterHTML = function(filterNumber) {
     '<button class="btn" id="filterTopics' + filterNumber + '">Topics</button>' +
     '<button class="btn btn-danger" id="filterRemove' + filterNumber + '">' +
     '<i class="icon-minus-sign"></i></button>' +
-    '<button class="btn" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
-    '<button class="btn" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
+    '<button class="btn filter-down" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
+    '<button class="btn filter-up" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
     '</form>';
 };
 
@@ -414,7 +474,7 @@ wxconsole.MessageViewController = function(bufferSize) {
   this.MaxNumberOfDisplayedMessages = bufferSize;
 
   /**
-   * browser title
+   * browser title. default is 'wxconsole'
    * @type String
    */
   this.titleString = 'wxconsole';
@@ -425,12 +485,12 @@ wxconsole.MessageViewController = function(bufferSize) {
   this.uri = '';
 
   /**
-   * id of table for display
+   * id of table for display. default is 'rosout_table'.
    * @type String
    */
   this.tableId = 'rosout_table';
   /**
-   * id of message field
+   * id of message field.  default is 'message'.
    * @type String
    */
   this.messageId = 'message';
@@ -487,16 +547,16 @@ wxconsole.MessageViewController = function(bufferSize) {
   this.onCloseCallback = function() {
     $('#' + self.messageId).append(
       '<div class="alert alert-block alert-error">'
-	+ '<a class="close" data-dismiss="alert" href="#">x</a>'
-	+ '<strong>Error!</strong> rosbridge connection closed</div>')
+        + '<a class="close" data-dismiss="alert" href="#">x</a>'
+        + '<strong>Error!</strong> rosbridge connection closed</div>')
       .delay(5000).fadeOut(1000);
   };
 
   this.onErrorCallback = function (e) {
     $('#' + self.messageId).append(
       '<div class="alert alert-block alert-error">'
-	+ '<a class="close" data-dismiss="alert" href="#">x</a>'
-	+ '<strong>Error!</strong> rosbridge error has occered</div>')
+        + '<a class="close" data-dismiss="alert" href="#">x</a>'
+        + '<strong>Error!</strong> rosbridge error has occered</div>')
       .delay(5000).fadeOut(1000);
   };
 
@@ -541,7 +601,7 @@ wxconsole.MessageViewController = function(bufferSize) {
   this.reject = function(msg) {
     for (var i = 0;  i < self.filters.length; i++) {
       if (self.filters[i].reject(msg)) {
-	return true;
+        return true;
       }
     }
     return false;
@@ -550,9 +610,9 @@ wxconsole.MessageViewController = function(bufferSize) {
   this.updateAllMessageFilteringResult = function() {
     for (var i = 0;  i < self.messages.length; i++) {
       if (self.reject(self.messages[i])) {
-	$('#logTable' + i).addClass('hide');
+        $('#logTable' + i).addClass('hide');
       } else {
-	$('#logTable' + i).removeClass('hide');
+        $('#logTable' + i).removeClass('hide');
       }
     }
   };
@@ -578,8 +638,8 @@ wxconsole.MessageViewController = function(bufferSize) {
     $('#' + self.messageId).children().fadeOut(100);
     $('#' + self.messageId).append(
       '<div class="alert alert-block alert-success id="connection_alert">'
-	+ '<a class="close" data-dismiss="alert" href="#">&times</a>'
-	+ '<strong>Success!</strong> rosbridge connection established</div>');
+        + '<a class="close" data-dismiss="alert" href="#">&times</a>'
+        + '<strong>Success!</strong> rosbridge connection established</div>');
     $('#' + self.messageId).children().delay(3000).fadeOut(1000);
     document.title = self.titleString + ' [' + self.uri + ']';
   };
@@ -619,8 +679,8 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
     try {
       connection_.handlers = new Array();
       connection_.callService('/rosjs/subscribe',
-			      [self.topic, -1],
-			    function(e){});
+                              [self.topic, -1],
+                            function(e){});
 
     } catch (error) {
       console.error('Problem subscribing!');
@@ -637,10 +697,10 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
   this.close = function(){
     if (connection_ != null) {
       try {
-	connection_.socket.close();
-	connection_.handlers = new Array(); // rosws bug?
+        connection_.socket.close();
+        connection_.handlers = new Array(); // rosws bug?
       } catch (x) {
-	console.log('rosbridge1 close error: ' + x);
+        console.log('rosbridge1 close error: ' + x);
       }
     }
   };
@@ -683,7 +743,7 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
    * version name of rosbridge
    * @description this is used in html id. if you want to change this,
    * check html source.
-   * @const 
+   * @const
    * @type {String}
    */
   this.ROSBRIDGE_VERSION = '2.0';
@@ -698,7 +758,7 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
 
     try {
       connection_.subscribe(self.controller.onMessageCallback,
-			    self.topic);
+                            self.topic);
     } catch(error) {
       console.error('problem in registering: ' + error);
       return;
@@ -713,11 +773,11 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
   this.close = function() {
     if (connection_ != null) {
       try {
-	connection_.unsubscribe(this.topic);
-	connection_.socket.close();
+        connection_.unsubscribe(this.topic);
+        connection_.socket.close();
       } catch (x) {
-	// ignore closing error
-	console.log('rosbridge2 close error ' + x);
+        // ignore closing error
+        console.log('rosbridge2 close error ' + x);
       }
     }
   };
@@ -765,6 +825,10 @@ wxconsole.App = function() {
   var version = '2.0';
   var topic = '/rosout_agg';
 
+
+  /**
+   * get cookie data.
+   */
   this.getCookies = function(){
     // initialize controller
     var cookieBufferSize = $.cookie('bufferSize');
@@ -787,11 +851,11 @@ wxconsole.App = function() {
     if (version == null) {
       // default is version 2.0
       if (ros.Bridge != undefined) {
-	wxconsole.setRosbridgeVersion('2.0');
+        wxconsole.setRosbridgeVersion('2.0');
       } else if (ros.Connection != undefined) {
-	wxconsole.setRosbridgeVersion('1.0');
+        wxconsole.setRosbridgeVersion('1.0');
       } else {
-	console.error('ros.js is not included');
+        console.error('ros.js is not included');
       }
     } else {
       wxconsole.setRosbridgeVersion(version);
@@ -799,6 +863,9 @@ wxconsole.App = function() {
   };
 
 
+  /**
+   * initialize wxconsole app
+   */
   this.init = function() {
     $('.nav-tabs').button();
     $(".alert").alert();
@@ -812,84 +879,84 @@ wxconsole.App = function() {
     } else {
       $('#hostname').val(hostname);
       console.log('auto connect using cookie:' +
-		  hostname + ':' + port + ':' + topic);
+                  hostname + ':' + port + ':' + topic);
       adaptor = new wxconsole.Adaptor(hostname, port, topic, controller);
       adaptor.init();
     }
 
     $('#set_hostname').submit(
       function(){
-	var hostname = $('#hostname').val();
-	$.cookie('hostname', hostname);
-	if (adaptor != null){
-	  adaptor.close();
-	  delete adaptor;
-	}
-	adaptor = new wxconsole.Adaptor(hostname, port, topic, controller);
-	adaptor.init();
-	return false;
+        var hostname = $('#hostname').val();
+        $.cookie('hostname', hostname);
+        if (adaptor != null){
+          adaptor.close();
+          delete adaptor;
+        }
+        adaptor = new wxconsole.Adaptor(hostname, port, topic, controller);
+        adaptor.init();
+        return false;
       });
 
     $('#level_buttons > .btn').click(
       function(){
-	controller.toggleSelectedLevel($(this).text());
-	controller.updateAllMessageFilteringResult();
-	$(this).button('toggle');
+        controller.toggleSelectedLevel($(this).text());
+        controller.updateAllMessageFilteringResult();
+        $(this).button('toggle');
       });
     $('#pause_button').click(
       function(){
-	controller.togglePause();
-	$(this).button('toggle');
+        controller.togglePause();
+        $(this).button('toggle');
       });
     $('#add_filter_button').click(
       function(ev) {
-	controller.addFilter();
+        controller.addFilter();
       });
     $('#clear_button').click(
       function(){
-	controller.clear();
+        controller.clear();
       });
     $('#setting_button').click(
       function(){
-	$('#rosout_topic_input').val(adaptor.topic);
-	$('#buffer_size_input').val(controller.MaxNumberOfDisplayedMessages);
-	$('#port_number_input').val(adaptor.port);
-	$('input[name="rosbridgeVersion"]').val([adaptor.ROSBRIDGE_VERSION]);
-	$('#modal_setting').modal();
+        $('#rosout_topic_input').val(adaptor.topic);
+        $('#buffer_size_input').val(controller.MaxNumberOfDisplayedMessages);
+        $('#port_number_input').val(adaptor.port);
+        $('input[name="rosbridgeVersion"]').val([adaptor.ROSBRIDGE_VERSION]);
+        $('#modal_setting').modal();
       });
     $('#setup_submit').click(
       function(){
-	var topic = $('#rosout_topic_input').val();
-	var inputBufferSize = $('#buffer_size_input').val();
-	var version = $('input[name="rosbridgeVersion"]:checked').val();
-	var newPortNumber = $('#port_number_input').val();
+        var topic = $('#rosout_topic_input').val();
+        var inputBufferSize = $('#buffer_size_input').val();
+        var version = $('input[name="rosbridgeVersion"]:checked').val();
+        var newPortNumber = $('#port_number_input').val();
 
-	$.cookie('topic', topic);
-	$.cookie('rosbridgeVersion', version);
-	$.cookie('portNumber', newPortNumber);
-	$.cookie('bufferSize', inputBufferSize);
+        $.cookie('topic', topic);
+        $.cookie('rosbridgeVersion', version);
+        $.cookie('portNumber', newPortNumber);
+        $.cookie('bufferSize', inputBufferSize);
 
-	// if version is changed, create new wx instance
-	if (version != adaptor.ROSBRIDGE_VERSION ||
-	    newPortNumber != port) {
-	  if (adaptor != null){
-	    adaptor.close();
-	    delete adaptor;
-	  }
-	  var hostname = $('#hostname').val();
-	  wxconsole.setRosbridgeVersion(version);
-	  port = newPortNumber;
-	  bufferSize = inputBufferSize;
-	  controller.MaxNumberOfDisplayedMessages = inputBufferSize;
-	  adaptor = new wxconsole.Adaptor(hostname, port, topic, controller);
-	  adaptor.init();
-	} else {
-	  // set variables to current wx instance
-	  adaptor.topic = topic;
-	  controller.MaxNumberOfDisplayedMessages = inputBufferSize;
-	  // reconnect
-	  adaptor.connect();
-	}
+        // if version is changed, create new wx instance
+        if (version != adaptor.ROSBRIDGE_VERSION ||
+            newPortNumber != port) {
+          if (adaptor != null){
+            adaptor.close();
+            delete adaptor;
+          }
+          var hostname = $('#hostname').val();
+          wxconsole.setRosbridgeVersion(version);
+          port = newPortNumber;
+          bufferSize = inputBufferSize;
+          controller.MaxNumberOfDisplayedMessages = inputBufferSize;
+          adaptor = new wxconsole.Adaptor(hostname, port, topic, controller);
+          adaptor.init();
+        } else {
+          // set variables to current wx instance
+          adaptor.topic = topic;
+          controller.MaxNumberOfDisplayedMessages = inputBufferSize;
+          // reconnect
+          adaptor.connect();
+        }
       });
   };
 };

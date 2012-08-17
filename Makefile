@@ -3,4 +3,4 @@ SOURCE=wxconsole.js
 all: doc
 
 doc: $(SOURCE)
-	jsdoc -d=doc $<
+	jsdoc -t=doc/jsdoc-bootstrap -d=doc $<
