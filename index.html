@@ -23,71 +23,71 @@
 
     <div class="navbar navbar-fixed-top" id="nav_bar">
       <div class="navbar-inner">
-	<div class="container-fluid">
-	  <a class="brand" href="#">wxconsole</a>
-	  <form class="navbar-search pull-left" id="set_hostname">
-	    <input type="text" id="hostname" class="search-query span2" placeholder="rosbridge's host" value="localhost">
-	  </form>
-	</div>
+        <div class="container-fluid">
+          <a class="brand" href="#">wxconsole</a>
+          <form class="navbar-search pull-left" id="set_hostname">
+            <input type="text" id="hostname" class="search-query span2" placeholder="rosbridge's host" value="localhost">
+          </form>
+        </div>
       </div>
     </div>
 
     <div class="navbar navbar-fixed-bottom" id="button_wrapper">
       <div class="navbar-inner">
-	<div class="container-fluid">
-	  <div class="span1">
-	    <div class="navbar-text">Severity</div>
-	  </div>
-	  <div class="span3.5">
-	    <div class="btn-group" id="level_buttons"
-		 data-toggle="buttons-checkbox">
-	      <button class="btn btn-default" id="Debug"><i class="icon-pencil"></i>Debug</button>
-	      <button class="btn btn-default" id="Info"><i class="icon-info-sign"></i>Info</button>
-	      <button class="btn btn-default" id="Warn"><i class="icon-exclamation-sign"></i>Warn</button>
-	      <button class="btn btn-default" id="Error"><i class="icon-remove-sign"></i>Error</button>
-	      <button class="btn btn-default" id="Fatal"><i class="icon-remove"></i>Fatal</button>
-	    </div>
-	  </div>
-	  <div class="span5">
-	    <button class="btn btn-default" id="pause_button"
-		    data-toggle="button">
-	      <i class="icon-black icon-pause"></i>Pause</button>
-	    <button class="btn btn-default" id="clear_button">
-	      <i class="icon-black icon-refresh"></i>Clear</button>
-	    <button class="btn btn-info" id="setting_button">
-	      <i class="icon-white icon-wrench"></i>Setup</button>
-	    <button class="btn" id="add_filter_button">
-	      <i class="icon-plus-sign"></i>Add Filter</button>
-	  </div>
-	</div>
+        <div class="container-fluid">
+          <div class="span1">
+            <div class="navbar-text">Severity</div>
+          </div>
+          <div class="span3.5">
+            <div class="btn-group" id="level_buttons"
+                 data-toggle="buttons-checkbox">
+              <button class="btn btn-default" id="Debug"><i class="icon-pencil"></i>Debug</button>
+              <button class="btn btn-default" id="Info"><i class="icon-info-sign"></i>Info</button>
+              <button class="btn btn-default" id="Warn"><i class="icon-exclamation-sign"></i>Warn</button>
+              <button class="btn btn-default" id="Error"><i class="icon-remove-sign"></i>Error</button>
+              <button class="btn btn-default" id="Fatal"><i class="icon-remove"></i>Fatal</button>
+            </div>
+          </div>
+          <div class="span5">
+            <button class="btn btn-default" id="pause_button"
+                    data-toggle="button">
+              <i class="icon-black icon-pause"></i>Pause</button>
+            <button class="btn btn-default" id="clear_button">
+              <i class="icon-black icon-refresh"></i>Clear</button>
+            <button class="btn btn-info" id="setting_button">
+              <i class="icon-white icon-wrench"></i>Setup</button>
+            <button class="btn" id="add_filter_button">
+              <i class="icon-plus-sign"></i>Add Filter</button>
+          </div>
+        </div>
       </div>
     </div> <!-- end of row (buttons) -->
 
     <div class="container-fluid">
       <div class="row">
-	<div class="span11" id="message_field">
-	  <table class="table table-striped table-condensed" id="rosout_table">
-	    <thead>
-	      <tr>
-		<th class="span5">Message</th>
-		<th class="span1">Severity</th>
-		<th class="span2">Node</th>
-		<th class="span3">Time</th>
-		<th class="span2">Topics</th>
-		<th class="span5">Location</th>
-	      </tr>
-	    </thead>
-	    <tbody>
-	    </tbody>
-	  </table>
-	</div>
+        <div class="span11" id="message_field">
+          <table class="table table-striped table-condensed" id="rosout_table">
+            <thead>
+              <tr>
+                <th class="span5">Message</th>
+                <th class="span1">Severity</th>
+                <th class="span2">Node</th>
+                <th class="span3">Time</th>
+                <th class="span2">Topics</th>
+                <th class="span5">Location</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <div class="row">
       <div class="span6" id="messageField">
-	<div id="message">
-	</div>
+        <div id="message">
+        </div>
       </div> <!-- end of bottom_items -->
     </div>
 
@@ -98,42 +98,42 @@
 
     <div id="modal_setting" class="modal hide">
       <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal">&times</button>
-	<h3>Setup</h3>
+        <button type="button" class="close" data-dismiss="modal">&times</button>
+        <h3>Setup</h3>
       </div>
       <div class="modal-body">
-	<form class="well" id="setup_form">
-	  <label>Rosout Topic</label>
-	  <input type="text" class="span3" placeholder="/topic_name_of_rosout"
-		 id="rosout_topic_input">
-	  <label>Buffer Size</label>
-	  <input type="text" class="span3" placeholder="size of lines"
-		 id="buffer_size_input">
-	  <label>Port Number</label>
-	  <input type="text" class="span3" placeholder="port number"
-		 id="port_number_input" value="9090">
+        <form class="well" id="setup_form">
+          <label>Rosout Topic</label>
+          <input type="text" class="span3" placeholder="/topic_name_of_rosout"
+                 id="rosout_topic_input">
+          <label>Buffer Size</label>
+          <input type="text" class="span3" placeholder="size of lines"
+                 id="buffer_size_input">
+          <label>Port Number</label>
+          <input type="text" class="span3" placeholder="port number"
+                 id="port_number_input" value="9090">
 
-	  <div class="control-group">
-	    <label class="control-label">Rosbridge Version</label>
-	    <div class="controls">
-	      <label class="radio">
-		<input type="radio" name="rosbridgeVersion"
-		       id="rosbridge_version_setting1.0" value="1.0">
-		rosbridge 1.0 (brown-remotelab)
-	      </label>
-	      <label class="radio">
-		<input type="radio" name="rosbridgeVersion"
-		       id="rosbridge_version_setting2.0" value="2.0">
-		rosbridge 2.0
-	      </label>
-	    </div>
-	</form>
+          <div class="control-group">
+            <label class="control-label">Rosbridge Version</label>
+            <div class="controls">
+              <label class="radio">
+                <input type="radio" name="rosbridgeVersion"
+                       id="rosbridge_version_setting1.0" value="1.0">
+                rosbridge 1.0 (brown-remotelab)
+              </label>
+              <label class="radio">
+                <input type="radio" name="rosbridgeVersion"
+                       id="rosbridge_version_setting2.0" value="2.0">
+                rosbridge 2.0
+              </label>
+            </div>
+        </form>
 
       </div>
       <div class="modal-footer">
-	<a href="#" class="btn" data-dismiss="modal">Close</a>
-	<a href="#" class="btn btn-primary" data-dismiss="modal"
-	   id="setup_submit">Save Changes</a>
+        <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+        <a href="#" class="btn btn-primary" data-dismiss="modal"
+           id="setup_submit">Save Changes</a>
       </div>
     </div>
 
