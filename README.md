@@ -54,3 +54,12 @@ for documents.
 
 * jsdoc toolkit http://code.google.com/p/jsdoc-toolkit/
 * jsdoc bootstrap http://orgachem.github.com/JsDoc2-Template-Bootstrap/
+
+for tests.
+* QUnit http://docs.jquery.com/QUnit
+
+Tests
+------------------------
+you can execute all tests in this url.
+
+* http://otl.github.com/wxconsole/test/
