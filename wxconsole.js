@@ -449,13 +449,15 @@ wxconsole.generateFilterHTML = function(filterNumber) {
     '<label class="checkbox">' +
     '<input type="checkbox" id="filterRegExCheck' + filterNumber + '"> Regex' +
     '</label>' +
+    '  ' + 
     '<strong>From</strong>' +
     '<button class="btn" id="filterMessage' + filterNumber + '">Message</button>' +
     '<button class="btn" id="filterNode' + filterNumber + '">Node</button>' +
     '<button class="btn" id="filterLocation' + filterNumber + '">Location</button>' +
     '<button class="btn" id="filterTopics' + filterNumber + '">Topics</button>' +
+    ' ' + 
     '<button class="btn btn-danger" id="filterRemove' + filterNumber + '">' +
-    '<i class="icon-minus-sign"></i></button>' +
+    '<i class="icon-minus-sign"></i>Remove</button>' +
     '<button class="btn filter-down" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
     '<button class="btn filter-up" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
     '</form>';
