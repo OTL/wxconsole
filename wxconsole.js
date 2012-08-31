@@ -889,11 +889,13 @@ wxconsole.App = function() {
 
     version = $.cookie('rosbridgeVersion');
     if (version == null) {
-      // default is version 2.0
-      if (ros.Bridge != undefined) {
-        wxconsole.setRosbridgeVersion('2.0');
+			// default is version 2.0
+			if (ros.Bridge != undefined) {
+        version = '2.0';
+        wxconsole.setRosbridgeVersion(version);
       } else if (ros.Connection != undefined) {
-        wxconsole.setRosbridgeVersion('1.0');
+        version = '1.0';
+        wxconsole.setRosbridgeVersion(version);
       } else {
         console.error('ros.js is not included');
       }
@@ -958,10 +960,16 @@ wxconsole.App = function() {
       });
     $('#setting_button').click(
       function(){
-        $('#rosout_topic_input').val(adaptor.topic);
+        if (adaptor) {
+          $('#rosout_topic_input').val(adaptor.topic);
+          $('#port_number_input').val(adaptor.port);
+          $('input[name="rosbridgeVersion"]').val([adaptor.ROSBRIDGE_VERSION]);
+        } else {
+          $('#rosout_topic_input').val(topic);
+          $('#port_number_input').val(port);
+          $('input[name="rosbridgeVersion"]').val(['2.0']);
+        }
         $('#buffer_size_input').val(controller.MaxNumberOfDisplayedMessages);
-        $('#port_number_input').val(adaptor.port);
-        $('input[name="rosbridgeVersion"]').val([adaptor.ROSBRIDGE_VERSION]);
         $('#modal_setting').modal();
       });
     $('#setup_submit').click(
