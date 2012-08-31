@@ -917,7 +917,7 @@ wxconsole.App = function() {
     var controller = new wxconsole.MessageViewController(bufferSize);
 
     if (hostname == "" || hostname == null) {
-      $('#hostname').val("localhost");
+      $('#hostname').val("127.0.0.1");
     } else {
       $('#hostname').val(hostname);
       console.log('auto connect using cookie:' +
