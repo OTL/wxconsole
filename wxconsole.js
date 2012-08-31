@@ -449,13 +449,15 @@ wxconsole.generateFilterHTML = function(filterNumber) {
     '<label class="checkbox">' +
     '<input type="checkbox" id="filterRegExCheck' + filterNumber + '"> Regex' +
     '</label>' +
+    '  ' + 
     '<strong>From</strong>' +
     '<button class="btn" id="filterMessage' + filterNumber + '">Message</button>' +
     '<button class="btn" id="filterNode' + filterNumber + '">Node</button>' +
     '<button class="btn" id="filterLocation' + filterNumber + '">Location</button>' +
     '<button class="btn" id="filterTopics' + filterNumber + '">Topics</button>' +
+    ' ' + 
     '<button class="btn btn-danger" id="filterRemove' + filterNumber + '">' +
-    '<i class="icon-minus-sign"></i></button>' +
+    '<i class="icon-minus-sign"></i>Remove</button>' +
     '<button class="btn filter-down" id="filterDown' + filterNumber + '"><i class="icon-arrow-down"></i></button>' +
     '<button class="btn filter-up" id="filterUp' + filterNumber + '"><i class="icon-arrow-up"></i></button>' +
     '</form>';
@@ -889,11 +891,13 @@ wxconsole.App = function() {
 
     version = $.cookie('rosbridgeVersion');
     if (version == null) {
-      // default is version 2.0
-      if (ros.Bridge != undefined) {
-        wxconsole.setRosbridgeVersion('2.0');
+			// default is version 2.0
+			if (ros.Bridge != undefined) {
+        version = '2.0';
+        wxconsole.setRosbridgeVersion(version);
       } else if (ros.Connection != undefined) {
-        wxconsole.setRosbridgeVersion('1.0');
+        version = '1.0';
+        wxconsole.setRosbridgeVersion(version);
       } else {
         console.error('ros.js is not included');
       }
@@ -915,7 +919,7 @@ wxconsole.App = function() {
     var controller = new wxconsole.MessageViewController(bufferSize);
 
     if (hostname == "" || hostname == null) {
-      $('#hostname').val("localhost");
+      $('#hostname').val("127.0.0.1");
     } else {
       $('#hostname').val(hostname);
       console.log('auto connect using cookie:' +
@@ -958,10 +962,16 @@ wxconsole.App = function() {
       });
     $('#setting_button').click(
       function(){
-        $('#rosout_topic_input').val(adaptor.topic);
+        if (adaptor) {
+          $('#rosout_topic_input').val(adaptor.topic);
+          $('#port_number_input').val(adaptor.port);
+          $('input[name="rosbridgeVersion"]').val([adaptor.ROSBRIDGE_VERSION]);
+        } else {
+          $('#rosout_topic_input').val(topic);
+          $('#port_number_input').val(port);
+          $('input[name="rosbridgeVersion"]').val(['2.0']);
+        }
         $('#buffer_size_input').val(controller.MaxNumberOfDisplayedMessages);
-        $('#port_number_input').val(adaptor.port);
-        $('input[name="rosbridgeVersion"]').val([adaptor.ROSBRIDGE_VERSION]);
         $('#modal_setting').modal();
       });
     $('#setup_submit').click(

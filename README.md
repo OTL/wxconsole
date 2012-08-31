@@ -1,22 +1,26 @@
 wxconsole
 ========================
 
-wxconsole is web rxconsole.
+**wxconsole** is web rxconsole.
+rxconsole is Log viewer for [ROS: Robot Operating System](http://ros.org).
+wxconsole uses [rosbridge](http://rosbridge.org), that is ROS bridge using websocket.
 
-You can try it from here.
+You can try **wxconsole** here.
 
 http://otl.github.com/wxconsole/
 
 
 How to use
 ------------------------
-At first, you have to run rosbridge.
-Then please access to http://otl.github.com/wxconsole/ in your browser.
-Input your rosbridge's host name to the top navbar form.
-and press enter.
 
-wxconsole supports rosbridge version 1.0
-and version 2.0. Default is version 2.0.
+1. run roscore
+1. run rosbridge (see http://rosbridge.org)
+1. open http://otl.github.com/wxconsole/ with browser
+1. Input your rosbridge's host name to the top navbar form and press enter.
+1. please output /rosout messages
+
+wxconsole supports rosbridge version 1.0 and version 2.0.
+Default is version 2.0.
 If you are using rosbridge version 1.0, push the 'Setup' button
 of the bottom. Then please select rosbridge 1.0.
 
@@ -46,17 +50,17 @@ Libraries
 ---------------------
 wxconsole uses these libraries.
 
-* rosbridge (version 1.0 and 2.0) http://rosbridge.org
-* twitterbootstrap http://twitter.github.com/bootstrap/
-* jQuery http://jquery.com/
+* [rosbridge (version 1.0 and 2.0)](http://rosbridge.org)
+* [twitterbootstrap](http://twitter.github.com/bootstrap)
+* [jQuery](http://jquery.com)
 
 for documents.
 
-* jsdoc toolkit http://code.google.com/p/jsdoc-toolkit/
-* jsdoc bootstrap http://orgachem.github.com/JsDoc2-Template-Bootstrap/
+* [jsdoc toolkit](http://code.google.com/p/jsdoc-toolkit/)
+* [jsdoc bootstrap](http://orgachem.github.com/JsDoc2-Template-Bootstrap/)
 
 for tests.
-* QUnit http://docs.jquery.com/QUnit
+* [QUnit](http://docs.jquery.com/QUnit)
 
 Tests
 ------------------------
