@@ -13,6 +13,8 @@
  */
 var wxconsole = {};
 
+var connection_ = null;
+
 /**
  * Convert rosgraph_msgs/Log level byte to String
  *
@@ -737,6 +739,7 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
       try {
         connection_.socket.close();
         connection_.handlers = new Array(); // rosws bug?
+        connection_ = null;
       } catch (x) {
         console.log('rosbridge1 close error: ' + x);
       }
@@ -749,7 +752,7 @@ wxconsole.Rosbridge1Adaptor = function(host, port, topic, controller) {
   this.init = function(){
     self.controller.clear();
 
-    close();
+    self.close();
     connection_ = new ros.Connection(
       wxconsole.MakeWebsocketUri(self.host, self.port));
     // clear
@@ -817,6 +820,7 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
       try {
         connection_.unsubscribe(this.topic);
         connection_.socket.close();
+        connection_ = null;
       } catch (x) {
         // ignore closing error
         console.log('rosbridge2 close error ' + x);
@@ -831,7 +835,7 @@ wxconsole.Rosbridge2Adaptor = function(host, port, topic, controller) {
 
     self.controller.clear();
 
-    close();
+	  self.close();
     connection_ = new ros.Bridge(
       wxconsole.MakeWebsocketUri(self.host, self.port));
     // clear
